@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/abnerugeda/go-with-gin/controllers"
@@ -65,6 +67,39 @@ func TestBuscaAlunoCPF(t *testing.T) {
 	r := SetupRotasTeste()
 	r.GET("/alunos/cpf/:cpf", controllers.SearchAlunoByCPF)
 	req, _ := http.NewRequest("GET", "/alunos/cpf/12312312312", nil)
+	resposta := httptest.NewRecorder()
+	r.ServeHTTP(resposta, req)
+	assert.Equal(t, http.StatusOK, resposta.Code)
+}
+
+func TestBuscaAlunoPorID(t *testing.T) {
+	database.ConnectDB()
+	CriaAlunoMock()
+	defer DeletaAlunoMock()
+	r := SetupRotasTeste()
+	r.GET("/alunos/:id", controllers.FindOneAluno)
+	pathBusca := "/alunos/" + strconv.Itoa(ID)
+
+	req, _ := http.NewRequest("GET", pathBusca, nil)
+	resposta := httptest.NewRecorder()
+	r.ServeHTTP(resposta, req)
+
+	var alunoMock models.Aluno
+	json.Unmarshal(resposta.Body.Bytes(), &alunoMock)
+	assert.Equal(t, "Nome aluno teste", alunoMock.Nome)
+	assert.Equal(t, "12312312312", alunoMock.CPF)
+	assert.Equal(t, "123123123", alunoMock.RG)
+	assert.Equal(t, http.StatusOK, resposta.Code)
+}
+
+func TestDeleteAlunoPorID(t *testing.T) {
+	database.ConnectDB()
+	CriaAlunoMock()
+	r := SetupRotasTeste()
+	r.DELETE("/alunos/:id", controllers.DeleteAluno)
+	pathBusca := "/alunos/" + strconv.Itoa(ID)
+
+	req, _ := http.NewRequest("DELETE", pathBusca, nil)
 	resposta := httptest.NewRecorder()
 	r.ServeHTTP(resposta, req)
 	assert.Equal(t, http.StatusOK, resposta.Code)
