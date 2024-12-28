@@ -1,9 +1,12 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/abnerugeda/go-with-gin/database"
+	"github.com/abnerugeda/go-with-gin/routes"
+)
 
 func main() {
-	r := gin.Default()
+	database.ConnectDB()
 
-	r.Run()
+	routes.HandleRequests()
 }
